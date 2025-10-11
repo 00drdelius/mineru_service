@@ -1,6 +1,7 @@
 import io
 import time
 import asyncio
+from datetime import datetime
 
 import rich
 import shortuuid
@@ -66,7 +67,8 @@ async def extract_blocks_from_image(
         description="仅支持pdf,jpg,png；上传的文件最好列明文件名"),
 ):
     """接收上传的图片文件，并提取其中的信息块。"""
-    print("request received, request_id: %s" % request_id)
+    now_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print("[%s] request received, request_id: %s" % (now_time,request_id))
     try:
         file_type = check_mimetype(content_type=file.content_type,filename=file.filename)
         list_of_extracted_blocks=None
@@ -84,7 +86,7 @@ async def extract_blocks_from_image(
     else:
         # 打印提取结果和耗时（可选）
         # rich.print(extracted_response)
-        print(f"Time consumed: {end_time - start_time:.2f} seconds")
+        print(f"[request_id: {request_id}] Time consumed: {end_time - start_time:.2f} seconds")
 
     # 按照定义的 Pydantic 模型返回结果
     return extracted_response

@@ -2,3 +2,5 @@
 kernel_meta/
 
 **/__pycache__
+
+**/*.pdf

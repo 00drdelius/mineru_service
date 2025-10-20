@@ -89,6 +89,7 @@ async def extract_blocks_from_image(
                 markdown_content = "\n".join(
                     [ block.type.renderer(block.content) for block in page_result.content_blocks ])
                 page_result.markdown_content = markdown_content
+                page_result.content_blocks = None
             page_results.append(page_result)
         page_results = PageResults.model_validate(dict(list_of_extracted_pages=page_results))
 

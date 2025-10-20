@@ -14,16 +14,17 @@ allowed_content_types=[
 allowed_file_formats=["pdf","jpg","jpeg","png"]
 
 def check_mimetype(content_type:str=None, filename:str=None)->Literal["pdf","image"]:
-    if content_type:
-        assert content_type in allowed_content_types, "unsupported content type: %s" % content_type
-        if content_type=='application/pdf':
-            return "pdf"
-        else:
-            return "image"
+    print("content_type: ",content_type,"; ","filename: ",filename)
     if filename:
         extension=filename.rsplit(".",1)[-1] 
         assert extension in allowed_file_formats, "unsupported file format: %s" % filename
         if extension=='pdf':
+            return "pdf"
+        else:
+            return "image"
+    if content_type:
+        assert content_type in allowed_content_types, "unsupported content type: %s" % content_type
+        if content_type=='application/pdf':
             return "pdf"
         else:
             return "image"

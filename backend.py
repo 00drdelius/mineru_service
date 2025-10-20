@@ -18,7 +18,7 @@ from fastapi.openapi.docs import (
 )
 
 from utils import check_mimetype, convert_to_images
-from schemas import ExtractionResponse
+from schemas import OutputFormats, PageResults, OnePageResult
 
 # 初始化 MinerUClient
 client = MinerUClient(
@@ -57,10 +57,15 @@ async def custom_redoc():
     )
 
 
-@app.post("/extract/", response_model=ExtractionResponse)
+@app.post("/extract/", response_model=PageResults)
 async def extract_blocks_from_image(
     request:Request,
     request_id:str = Form(default_factory=shortuuid.uuid),
+    output_format:OutputFormats = Form(
+        default=OutputFormats.JSON,
+        title="输出格式",
+        description=f"返回格式：支持['markdown', 'json']；",
+    ),
     file: UploadFile = File(
         ...,
         title="上传文件",
@@ -74,9 +79,19 @@ async def extract_blocks_from_image(
         list_of_extracted_blocks=None
         image_lists = await convert_to_images(await file.read(), file_type)
         start_time = time.time()
-        list_of_extracted_blocks = await client.aio_batch_two_step_extract(image_lists)
+        list_of_page_results = await client.aio_batch_two_step_extract(image_lists)
         end_time = time.time()
-        extracted_response=ExtractionResponse.model_validate(dict(list_of_extracted_blocks=list_of_extracted_blocks))
+
+        page_results:list[OnePageResult]=list()
+        for result in list_of_page_results:
+            page_result = OnePageResult.model_validate(dict(content_blocks=result))
+            if output_format.value == 'markdown':
+                markdown_content = "\n".join(
+                    [ block.type.renderer(block.content) for block in page_result.content_blocks ])
+                page_result.markdown_content = markdown_content
+            page_results.append(page_result)
+        page_results = PageResults.model_validate(dict(list_of_extracted_pages=page_results))
+
     except AssertionError as exc:
         raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail=str(exc))
     except UnidentifiedImageError as exc:
@@ -88,8 +103,7 @@ async def extract_blocks_from_image(
         # rich.print(extracted_response)
         print(f"[request_id: {request_id}] Time consumed: {end_time - start_time:.2f} seconds")
 
-    # 按照定义的 Pydantic 模型返回结果
-    return extracted_response
+    return page_results
 
 # 可选：添加一个根路由用于测试服务是否正常运行
 @app.get("/")

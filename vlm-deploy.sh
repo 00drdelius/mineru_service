@@ -1,7 +1,7 @@
 # export HCCL_IF_BASE_PORT=61000 # HCCL master port to communicate with workers. https://www.hiascend.com/document/caselibrary/detail/ptacase_0043
 source /usr/local/Ascend/ascend-toolkit/set_env.sh
 source /usr/local/Ascend/nnal/atb/set_env.sh
-export VLLM_VERSION="0.10.1"
+export VLLM_VERSION="0.11.1"
 export ASCEND_RT_VISIBLE_DEVICES=7
 export VLLM_LOGGING_LEVEL=INFO
 
@@ -47,7 +47,7 @@ no_enable_prefix_caching=true
 ##### ascedn extra config #####
 
 dtype=bfloat16
-kvcache_blocks_fraction=0.9 # minimum ratio with graph mode
+kvcache_blocks_fraction=0.96 # minimum ratio with graph mode
 max_model_len=16384
 max_num_seqs=64 # max batch of seqs, wait queue+infer queue+swap queue
 # tokenizer_pool_size=4
@@ -92,7 +92,7 @@ cmd="vllm serve $model_path\
   --max-model-len $max_model_len\
   --max-num-seqs $max_num_seqs\
   --host '0.0.0.0'\
-  --port 9000"
+  --port 9001"
 
 if [[ $data_parallel == 'true' ]];then
         echo "[data parallel enabled]"

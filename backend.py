@@ -1,6 +1,5 @@
-import io
 import time
-import asyncio
+from pathlib import Path
 from datetime import datetime
 
 import rich
@@ -22,7 +21,7 @@ from schemas import OutputFormats, PageResults, OnePageResult
 
 # 初始化 MinerUClient
 client = MinerUClient(
-    backend="http-client",server_url="http://127.0.0.1:9000",max_concurrency=200,)
+    backend="http-client",server_url="http://127.0.0.1:9001",max_concurrency=200,)
 
 app = FastAPI(
     debug=False,
@@ -31,7 +30,7 @@ app = FastAPI(
     docs_url=None,
     redirect_slashes=False,
 )
-app.mount("/static", StaticFiles(directory="/root/workspace/static/openapi"),name="static")
+app.mount("/static", StaticFiles(directory=Path("static/")),name="static")
 
 
 @app.get("/docs", include_in_schema=False)

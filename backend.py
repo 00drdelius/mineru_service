@@ -1,8 +1,8 @@
 import time
+import traceback
 from pathlib import Path
 from datetime import datetime
 
-import rich
 import shortuuid
 from PIL import Image, UnidentifiedImageError
 from mineru_vl_utils import MinerUClient
@@ -16,6 +16,7 @@ from fastapi.openapi.docs import (
     get_swagger_ui_oauth2_redirect_html,
 )
 
+from logg import logger
 from utils import check_mimetype, convert_to_images
 from schemas import OutputFormats, PageResults, OnePageResult
 
@@ -75,7 +76,6 @@ async def extract_blocks_from_image(
     print("[%s] request received, request_id: %s" % (now_time,request_id))
     try:
         file_type = check_mimetype(content_type=file.content_type,filename=file.filename)
-        list_of_extracted_blocks=None
         image_lists = await convert_to_images(await file.read(), file_type)
         start_time = time.time()
         list_of_page_results = await client.aio_batch_two_step_extract(image_lists)
@@ -93,10 +93,16 @@ async def extract_blocks_from_image(
         page_results = PageResults.model_validate(dict(list_of_extracted_pages=page_results))
 
     except AssertionError as exc:
+        error_msg = traceback.format_exc()
+        logger.error(error_msg)
         raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail=str(exc))
     except UnidentifiedImageError as exc:
+        error_msg = traceback.format_exc()
+        logger.error(error_msg)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="cannot identify upload image. Maybe broken..")
     except Exception as exc:
+        error_msg = traceback.format_exc()
+        logger.error(error_msg)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc))
     else:
         # 打印提取结果和耗时（可选）

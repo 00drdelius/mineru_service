@@ -6,3 +6,4 @@ kernel_meta/
 **/*.pdf
 
 test/
+log/
